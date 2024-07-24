@@ -1,5 +1,5 @@
 {
-  "name": "@heasy/react-native-sunmi-printer",
+  "name": "@hrushabhkale/react-native-sunmi-printer-only-beta",
   "version": "1.8.3",
   "description": "商米内置打印",
   "main": "lib/commonjs/index",

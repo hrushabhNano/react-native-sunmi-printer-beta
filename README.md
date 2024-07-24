@@ -1,4 +1,4 @@
-# [@hrushabh/@hrushabhkale/react-native-sunmi-printer-only-beta](https://github.com/hrushabhNano/react-native-sunmi-printer-beta)
+# @hrushabhkale/react-native-sunmi-printer-only-beta
 
 Note: This code is taken from https://github.com/Surile/react-native-sunmi-printer under MIT open-source license.
 We have just removed scanner module in order to avoid overriding of other camera library because of it.

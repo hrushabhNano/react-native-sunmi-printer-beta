@@ -32,13 +32,13 @@
     "sunmi",
     "SunmiPrinterDemo"
   ],
-  "repository": "https://github.com/Surile/react-native-sunmi-printer",
-  "author": "夜雨 <mhecy98@gmail.com> (https://github.com/Surile)",
+  "repository": "https://github.com/hrushabhNano/react-native-sunmi-printer-beta",
+  "author": "Hrushabh Kale (https://github.com/hrushabhNano)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Surile/react-native-sunmi-printer/issues"
+    "url": "https://github.com/hrushabhNano/react-native-sunmi-printer-beta/issues"
   },
-  "homepage": "https://github.com/Surile/react-native-sunmi-printer#readme",
+  "homepage": "https://github.com/hrushabhNano/react-native-sunmi-printer-beta/blob/main/README.md",
   "publishConfig": {
     "access": "public"
   },

@@ -1,4 +1,7 @@
-# @heasy/react-native-sunmi-printer
+# [@hrushabh/@hrushabhkale/react-native-sunmi-printer-only-beta](https://github.com/hrushabhNano/react-native-sunmi-printer-beta)
+
+Note: This code is taken from https://github.com/Surile/react-native-sunmi-printer under MIT open-source license.
+We have just removed scanner module in order to avoid overriding of other camera library because of it.
 
 Caution: this is not the official project. I share it because I am working on this device but no any official support in react-native It's welcome to ask any question about the usage,problems or feature required, I will support ASAP.
 
@@ -100,17 +103,15 @@ The example app in this repository shows an example usage of every single API, c
 ## Broadcast-Event-Listener
 
 You can enable `Output Via Broadcast` option in your SUNMI Device `Scanner's Settings` and then listen the `onScanSuccess` Event with the `result`.
-You have to use physical special key buttons on your SUNMI device or soft floating button on your device (if you enabled that)  to trigger infrared scanning for the barcodes . And then afterwards , you can get the result in the `onScanSuccess` event.
+You have to use physical special key buttons on your SUNMI device or soft floating button on your device (if you enabled that) to trigger infrared scanning for the barcodes . And then afterwards , you can get the result in the `onScanSuccess` event.
 
 ```js
-
 useEffect(() => {
   DeviceEventEmitter.addListener('onScanSuccess', (msg) => {
     console.log('result', msg);
   });
   return () => DeviceEventEmitter.removeAllListeners('onScanSuccess');
 }, []);
-
 ```
 
 ## Contributing

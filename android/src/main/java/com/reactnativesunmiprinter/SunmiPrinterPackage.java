@@ -17,7 +17,6 @@ public class SunmiPrinterPackage implements ReactPackage {
   public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
     List<NativeModule> modules = new ArrayList<>();
     modules.add(new SunmiPrinterModule(reactContext));
-    modules.add(new SunmiScanModule(reactContext));
     return modules;
   }
 

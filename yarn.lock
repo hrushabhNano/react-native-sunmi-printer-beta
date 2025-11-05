@@ -1914,9 +1914,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@heasy/react-native-sunmi-printer@workspace:.":
+"@hrushabhkale/react-native-sunmi-printer-only-beta@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@heasy/react-native-sunmi-printer@workspace:."
+  resolution: "@hrushabhkale/react-native-sunmi-printer-only-beta@workspace:."
   dependencies:
     "@commitlint/config-conventional": ^11.0.0
     "@react-native-community/eslint-config": ^2.0.0

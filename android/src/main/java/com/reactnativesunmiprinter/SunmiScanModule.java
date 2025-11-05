@@ -22,18 +22,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+/**
+ * SunmiScanModule - React Native bridge for Sunmi scanner broadcast integration.
+ * Ensures scanner operates in broadcast mode (no keyboard input injection).
+ */
 public class SunmiScanModule extends ReactContextBaseJavaModule {
   private static ReactApplicationContext reactContext;
-  // choose a request code unlikely to conflict with others
   private static final int START_SCAN = 0x1001;
   private static final String E_ACTIVITY_DOES_NOT_EXIST = "E_ACTIVITY_DOES_NOT_EXIST";
   private static final String E_FAILED_TO_SHOW_SCAN = "E_FAILED_TO_SHOW_SCAN";
   private static final String ACTION_DATA_CODE_RECEIVED = "com.sunmi.scanner.ACTION_DATA_CODE_RECEIVED";
   private static final String DATA = "data";
   private static final String SOURCE = "source_byte";
+
   private Promise mPickerPromise;
 
-  private BroadcastReceiver receiver = new BroadcastReceiver() {
+  private final BroadcastReceiver receiver = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
       String action = intent.getAction();
@@ -50,15 +54,11 @@ public class SunmiScanModule extends ReactContextBaseJavaModule {
   private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
     @Override
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent intent) {
-      // --- IMPORTANT: only handle results for our START_SCAN requestCode ---
       if (requestCode != START_SCAN) {
-        // not our scan result — ignore so other modules (camera/pickers) receive their results
         return;
       }
 
-      // optional: only proceed if result OK and intent not null
       if (resultCode != Activity.RESULT_OK || intent == null) {
-        // optionally reject promise if you want to notify JS of cancellation
         if (mPickerPromise != null) {
           mPickerPromise.reject(E_FAILED_TO_SHOW_SCAN, "Scan cancelled or failed");
           mPickerPromise = null;
@@ -78,9 +78,7 @@ public class SunmiScanModule extends ReactContextBaseJavaModule {
       ArrayList<HashMap<String, String>> result =
           (ArrayList<HashMap<String, String>>) bundle.getSerializable("data");
       if (result != null) {
-        Iterator<HashMap<String, String>> it = result.iterator();
-        while (it.hasNext()) {
-          HashMap hashMap = it.next();
+        for (HashMap<String, String> hashMap : result) {
           Object value = hashMap.get("VALUE");
           if (value != null) {
             sendEvent(value.toString());
@@ -89,7 +87,6 @@ public class SunmiScanModule extends ReactContextBaseJavaModule {
       }
 
       if (mPickerPromise != null) {
-        // resolve or keep behavior as emit-only. Example: resolve with success true
         mPickerPromise.resolve(true);
         mPickerPromise = null;
       }
@@ -100,6 +97,10 @@ public class SunmiScanModule extends ReactContextBaseJavaModule {
     super(context);
     reactContext = context;
     reactContext.addActivityEventListener(mActivityEventListener);
+
+    // ensure scanner works in broadcast mode
+    setScannerToBroadcastMode();
+
     registerReceiver();
   }
 
@@ -108,6 +109,9 @@ public class SunmiScanModule extends ReactContextBaseJavaModule {
     return "SunmiScanModule";
   }
 
+  /**
+   * Starts the Sunmi scan activity explicitly.
+   */
   @ReactMethod
   public void scan(final Promise promise) {
     Activity currentActivity = getCurrentActivity();
@@ -129,39 +133,54 @@ public class SunmiScanModule extends ReactContextBaseJavaModule {
     }
   }
 
+  /**
+   * Programmatically sets Sunmi scanner to broadcast mode (disables keyboard input).
+   */
+  private void setScannerToBroadcastMode() {
+    try {
+      Intent intent = new Intent();
+      intent.setAction("com.sunmi.scanner.SET_SCAN_MODE");
+      intent.putExtra("scan_mode", 1); // 1 = broadcast, 0 = keyboard
+      reactContext.sendBroadcast(intent);
+      Log.i(getName(), "Scanner mode set to broadcast.");
+    } catch (Exception e) {
+      Log.w(getName(), "Unable to set scanner mode: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Registers the receiver for scan broadcasts.
+   */
   private void registerReceiver() {
     IntentFilter filter = new IntentFilter();
     filter.addAction(ACTION_DATA_CODE_RECEIVED);
 
     try {
-      // Android 14 (API 34) requires explicit receiver exported/not exported flag when context-registering
       if (Build.VERSION.SDK_INT >= 34) {
-        // choose exported or not exported based on your desired exposure;
-        // many apps should use RECEIVER_NOT_EXPORTED to limit broadcasts to the app only.
-        int flags = Context.RECEIVER_NOT_EXPORTED; // or Context.RECEIVER_EXPORTED if you want exports
+        int flags = Context.RECEIVER_NOT_EXPORTED;
         ContextCompat.registerReceiver(reactContext, receiver, filter, flags);
       } else {
-        // older OS: simple register (flags param not required)
         reactContext.registerReceiver(receiver, filter);
       }
+      Log.i(getName(), "Receiver registered for ACTION_DATA_CODE_RECEIVED");
     } catch (Exception e) {
-      // fallback: attempt plain register (defensive)
       try {
         reactContext.registerReceiver(receiver, filter);
       } catch (Exception ex) {
-        // log but don't crash the app
         Log.w(getName(), "Failed to register receiver: " + ex.getMessage());
       }
     }
   }
 
-  // cleanup to avoid leaks
+  /**
+   * Cleans up to avoid memory leaks.
+   */
   @Override
   public void onCatalystInstanceDestroy() {
     try {
       reactContext.unregisterReceiver(receiver);
     } catch (Exception e) {
-      // ignore if already unregistered / not registered
+      Log.w(getName(), "Receiver already unregistered");
     }
     try {
       reactContext.removeActivityEventListener(mActivityEventListener);
@@ -171,8 +190,13 @@ public class SunmiScanModule extends ReactContextBaseJavaModule {
     super.onCatalystInstanceDestroy();
   }
 
+  /**
+   * Sends an event to JS side (DeviceEventEmitter)
+   */
   private static void sendEvent(String msg) {
     if (reactContext == null) return;
-    reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("onScanSuccess", msg);
+    reactContext
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+      .emit("onScanSuccess", msg);
   }
 }
